@@ -265,7 +265,6 @@ export async function updatePassword(formData: FormData) {
 }
 
 export async function updateEmail(formData: FormData) {
-  // Get form data
   const newEmail = String(formData.get('newEmail')).trim();
 
   // Check that the email is valid

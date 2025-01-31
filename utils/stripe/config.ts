@@ -7,12 +7,11 @@ export const stripe = new Stripe(
     // https://stripe.com/docs/api/versioning
     // @ts-ignore
     apiVersion: null,
-    // Register this as an official Stripe plugin.
-    // https://stripe.com/docs/building-plugins#setappinfo
+    // Pin the API version if Stripe's latest causes issues
     appInfo: {
-      name: 'Next.js Subscription Starter',
+      name: 'MTGBAN Stripe Portal',
       version: '0.0.0',
-      url: 'https://github.com/vercel/nextjs-subscription-payments'
+      url: 'https://github.com/the-muppet/mtgban-stripe-payments'
     }
   }
 );
