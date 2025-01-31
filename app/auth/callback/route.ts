@@ -19,13 +19,12 @@ export async function GET(request: NextRequest) {
         getErrorRedirect(
           `${requestUrl.origin}/signin`,
           error.name,
-          "Sorry, we weren't able to log you in. Please try again."
+          "Sorry, there was an issue logging you in. Please try again."
         )
       );
     }
   }
 
-  // URL to redirect to after sign in process completes
   return NextResponse.redirect(
     getStatusRedirect(
       `${requestUrl.origin}/account`,

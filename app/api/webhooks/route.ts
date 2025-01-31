@@ -5,7 +5,18 @@ import {
   upsertPriceRecord,
   manageSubscriptionStatusChange,
   deleteProductRecord,
-  deletePriceRecord
+  deletePriceRecord,
+  handleCustomerCreated,
+  handleCustomerUpdated,
+  handlePaymentIntentCreated,
+  handlePaymentIntentFailed,
+  handlePaymentIntentProcessing,
+  handlePaymentIntentRequiresAction,
+  handlePaymentIntentSucceeded
+  handleSubscriptionPaused,
+  handleSubscriptionPendingUpdateApplied,
+  handleSubscriptionUpdateExpired,
+  handleSubscriptionResumed
 } from '@/utils/supabase/admin';
 
 const relevantEvents = new Set([
@@ -15,10 +26,21 @@ const relevantEvents = new Set([
   'price.created',
   'price.updated',
   'price.deleted',
+  'customer.created',
+  'customer.updated',
   'checkout.session.completed',
   'customer.subscription.created',
   'customer.subscription.updated',
-  'customer.subscription.deleted'
+  'customer.subscription.deleted',
+  'customer.subscription.paused',
+  'customer.subscription.pending_update_applied',
+  'customer.subscription.pending_update_expired',
+  'customer.subscription.resumed',
+  'payment_intent.created',
+  'payment_intent.succeeded',
+  'payment_intent.requires_action',
+  'payment_intent.processing',
+  'payment_intent.payment_failed'
 ]);
 
 export async function POST(req: Request) {
@@ -40,23 +62,58 @@ export async function POST(req: Request) {
   if (relevantEvents.has(event.type)) {
     try {
       switch (event.type) {
+        // Customer Events
+        case 'customer.created':
+          await handleCustomerCreated(event.data.object as Stripe.Customer);
+          break;
+
+        case 'customer.updated':
+          await handleCustomerUpdated(event.data.object as Stripe.Customer);
+          break;
+        
+        // Product events
         case 'product.created':
         case 'product.updated':
           await upsertProductRecord(event.data.object as Stripe.Product);
           break;
+
+        case 'product.deleted':
+          await deleteProductRecord(event.data.object as Stripe.Product);
+          break;
+
         case 'price.created':
         case 'price.updated':
           await upsertPriceRecord(event.data.object as Stripe.Price);
           break;
+
         case 'price.deleted':
           await deletePriceRecord(event.data.object as Stripe.Price);
           break;
-        case 'product.deleted':
-          await deleteProductRecord(event.data.object as Stripe.Product);
+
+        // Payment Intent Events
+        case 'payment_intent.created':
+          await handlePaymentIntentCreated(event.data.object as Stripe.PaymentIntent);
           break;
+
+        case 'payment_intent.payment_failed':
+          await handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
+          break;
+
+        case 'payment_intent.processing':
+          await handlePaymentIntentRequiresAction(event.data.object as Stripe.PaymentIntent);
+          break;
+
+        case 'payment_intent.requires_action':
+          await handlePaymentIntentRequiresAction(event.data.object as Stripe.PaymentIntent);
+          break;
+
+        case 'payment_intent.succeeded':
+          await handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
+          break;
+        
+        // Subscription Events
         case 'customer.subscription.created':
         case 'customer.subscription.updated':
-        case 'customer.subscription.deleted':
           const subscription = event.data.object as Stripe.Subscription;
           await manageSubscriptionStatusChange(
             subscription.id,
@@ -64,6 +121,32 @@ export async function POST(req: Request) {
             event.type === 'customer.subscription.created'
           );
           break;
+
+        case 'customer.subscription.deleted':
+          await manageSubscriptionStatusChange(
+            event.data.object.id,
+            event.data.object.customer as string,
+            false
+          );
+          break;
+
+        case 'customer.subscription.paused':
+          await handleSubscriptionPaused(event.data.object as Stripe.Subscription);
+          break;
+
+        case 'customer.subscription.pending_update_applied':
+          await handleSubscriptionPendingUpdateApplied(event.data.object as Stripe.Subscription);
+          break;
+
+        case 'customer.subscription.pending_update_expired':
+          await handleSubscriptionUpdateExpired(event.data.object as Stripe.Subscription);
+          break;
+          
+        case 'customer.subscription.resumed':
+          await handleSubscriptionResumed(event.data.object as Stripe.Subscription);
+          break;
+        
+        // Checkout Session Events
         case 'checkout.session.completed':
           const checkoutSession = event.data.object as Stripe.Checkout.Session;
           if (checkoutSession.mode === 'subscription') {
