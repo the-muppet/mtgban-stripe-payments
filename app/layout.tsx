@@ -4,6 +4,7 @@ import Navbar from '@/components/ui/Navbar';
 import { Toaster } from '@/components/ui/Toasts/toaster';
 import { PropsWithChildren, Suspense } from 'react';
 import { getURL } from '@/utils/helpers';
+import { Analytics } from "@vercel/analytics/react"
 import 'styles/main.css';
 
 const title = 'Next.js Subscription Starter';
@@ -35,6 +36,7 @@ export default async function RootLayout({ children }: PropsWithChildren) {
           <Toaster />
         </Suspense>
       </body>
+      <Analytics />
     </html>
   );
 }
