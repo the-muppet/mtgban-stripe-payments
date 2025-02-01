@@ -149,14 +149,16 @@ export default function Pricing({ user, products, subscription }: Props) {
     <section className="pricing-section">
       <div className="max-w-8xl px-4 py-8 mx-auto sm:py-24 sm:px-6 lg:px-8">
         <div className="sm:flex sm:flex-col sm:align-center space-y-16">
-          <h1 className="text-4xl font-extrabold sm:text-center sm:text-4xl">
-            Play with your cards, not with your money.
+          <h1 className="gradient-text-1 text-3xl font-extrabold sm:text-center sm:text-6xl">
+            Gain Access
           </h1>
-          <p className="text-lg text-zinc-400 sm:text-center sm:text-2xl">
-            Gain access to powerful market analytics and comprehensive trading tools engineered <br />
-            to give you the edge in today's competitive TCG Finance landscape.
-          </p>
-          <h1 className="gradient-text text-4xl font-extrabold sm:text-center sm:text-6xl">
+          <p className="text-lg text-zinc-400 sm:text-center sm:text-3xl">
+            Join an elite network of TCG market professionals.<br />
+            Advanced data analysis, granular market coverage and keen industry insights<br />
+            reveal opportunity others overlook. Whether you're scaling up or starting out,<br />
+            our platform delivers proven value at every level.
+            </p>
+          <h1 className="gradient-text-2 text-3xl font-extrabold sm:text-center sm:text-6xl">
             MTGBAN
           </h1>
           <div className="mt-36 mb-36">

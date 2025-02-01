@@ -43,8 +43,15 @@
     }
 }
 
-.gradient-text {
-    background: linear-gradient(to top, #ca0202, #780101);
+.gradient-text-1 {
+    background: linear-gradient(to top, #ee0000, #d30101);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.gradient-text-2 {
+    background: linear-gradient(to top, #d30101, #9d0101);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;

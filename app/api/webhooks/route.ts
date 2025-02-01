@@ -25,7 +25,7 @@ const relevantEvents = new Set([
   'customer.subscription.deleted',
 ]);
 
-export const runtime = 'edge';
+
 export const dynamic = 'force-dynamic';
 
 async function buffer(readable: ReadableStream) {
