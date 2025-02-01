@@ -25,11 +25,8 @@ const relevantEvents = new Set([
   'customer.subscription.deleted',
 ]);
 
-export const config = {
-  api: {
-    bodyParser: false,
-  }
-}
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 async function buffer(readable: ReadableStream) {
   const chunks = [];
@@ -136,6 +133,7 @@ export async function POST(req: Request) {
       status: 400
     });
   }
+
   return new Response(JSON.stringify({ received: true }), {
     headers: {
       'Content-Type': 'application/json'
