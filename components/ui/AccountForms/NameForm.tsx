@@ -26,7 +26,7 @@ export default function NameForm({ userName }: { userName: string }) {
   return (
     <Card
       title="Your Name"
-      description="Please enter your full name, or a display name you are comfortable with."
+      description="Please enter your full name, or a username you are comfortable displaying."
       footer={
         <div className="flex flex-col items-start justify-between sm:flex-row sm:items-center">
           <p className="pb-4 sm:pb-0">64 characters maximum</p>
