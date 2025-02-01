@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import Footer from '@/components/ui/Footer';
 import Navbar from '@/components/ui/Navbar';
 import { Toaster } from '@/components/ui/Toasts/toaster';
 import { PropsWithChildren, Suspense } from 'react';
@@ -8,8 +7,8 @@ import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import 'styles/main.css';
 
-const title = 'Next.js Subscription Starter';
-const description = 'Brought to you by Vercel, Stripe, and Supabase.';
+const title = 'MTGBAN User Portal';
+const description = 'Manage your MTGBAN subscription.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(getURL()),
@@ -24,15 +23,14 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: PropsWithChildren) {
   return (
     <html lang="en">
-      <body className="bg-black">
-        <Navbar />
+      <body className="bg-black 70% to-red-800 min-h-screen text-zinc-100">
+      <Navbar />
         <main
           id="skip"
           className="min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)]"
         >
           {children}
         </main>
-        <Footer />
         <Suspense>
           <Toaster />
         </Suspense>
