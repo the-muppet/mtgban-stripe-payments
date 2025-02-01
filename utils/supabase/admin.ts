@@ -4,18 +4,35 @@ import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 import type { Database, Tables, TablesInsert } from 'types_db';
 
+type Customer = Tables<'customers'>
 type Product = Tables<'products'>;
 type Price = Tables<'prices'>;
+type Subscription = Tables<'subscriptions'>;
 
 // Change to control trial period length
 const TRIAL_PERIOD_DAYS = 0;
 
 // Note: supabaseAdmin uses the SERVICE_ROLE_KEY which you must only use in a secure server-side context
-// as it has admin privileges and overwrites RLS policies!
 const supabaseAdmin = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
   process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
+
+
+const handleCustomerCreated = async (customer: Stripe.Customer) => {
+  const customerData: Customer = {
+    id: customer.metadata.supabaseUUID,
+    stripe_customer_id: customer.id
+  };
+  const { error: upsertError } = await supabaseAdmin
+  .from('customers')
+  .upsert([customerData]);
+
+  if (upsertError) {
+    throw new Error(`Customer creation failed: ${upsertError.message}`);
+  }
+  console.log(`customer created: ${customer.id}`);
+};
 
 const upsertProductRecord = async (product: Stripe.Product) => {
   const productData: Product = {
@@ -23,7 +40,7 @@ const upsertProductRecord = async (product: Stripe.Product) => {
     active: product.active,
     name: product.name,
     description: product.description ?? null,
-    image: product.images?.[0] ?? null,
+    image: product.images.length > 0 ? product.images[0] : null,
     metadata: product.metadata
   };
 
@@ -207,6 +224,8 @@ const copyBillingDetailsToCustomer = async (
     .eq('id', uuid);
   if (updateError) throw new Error(`Customer update failed: ${updateError.message}`);
 };
+
+
 
 const manageSubscriptionStatusChange = async (
   subscriptionId: string,
