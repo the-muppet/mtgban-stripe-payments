@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     if (!sig || !webhookSecret)
       return new Response('Webhook secret not found.', { status: 400 });
 
-    event = stripe.webhooks.constructEvent(rawBodyStr, sig, webhookSecret);
+    event = await stripe.webhooks.constructEventAsync(rawBodyStr, sig, webhookSecret);
 
     console.log(`🔔  Webhook received: ${event.type}`);
   } catch (err: any) {
@@ -89,12 +89,14 @@ export async function POST(req: Request) {
         // Subscription Events
         case 'customer.subscription.created':
         case 'customer.subscription.updated':
-          const subscription = event.data.object as Stripe.Subscription;
-          await manageSubscriptionStatusChange(
-            subscription.id,
-            subscription.customer as string,
-            event.type === 'customer.subscription.created'
-          );
+          {
+            const subscription = event.data.object as Stripe.Subscription;
+            await manageSubscriptionStatusChange(
+              subscription.id,
+              subscription.customer as string,
+              event.type === 'customer.subscription.created'
+            );
+          }
           break;
 
         case 'customer.subscription.deleted':
@@ -106,31 +108,32 @@ export async function POST(req: Request) {
           break;
 
         case 'checkout.session.completed':
+          {
           const checkoutSession = event.data.object as Stripe.Checkout.Session;
           if (checkoutSession.mode === 'subscription') {
-            const subscriptionId = checkoutSession.subscription;
-            await manageSubscriptionStatusChange(
-              subscriptionId as string,
-              checkoutSession.customer as string,
-              true
+              const subscriptionId = checkoutSession.subscription;
+              await manageSubscriptionStatusChange(
+                subscriptionId as string,
+                checkoutSession.customer as string,
+                true
             );
           }
-          break;
+        }
+        break;
+
         default:
           throw new Error('Unhandled relevant event!');
       }
     } catch (error) {
-      console.log(error);
+      console.error('Error processing webhook:', error);
       return new Response(
         'Webhook handler failed. View your Next.js function logs.',
-        {
-          status: 400
-        }
+        { status: 400 }
       );
     }
   } else {
     return new Response(`Unsupported event type: ${event.type}`, {
-      status: 400
+      status: 400 
     });
   }
 
