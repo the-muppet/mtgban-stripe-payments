@@ -1,4 +1,5 @@
 import Stripe from 'stripe';
+import { headers } from 'next/headers';
 import { stripe } from '@/utils/stripe/config';
 import {
   upsertProductRecord,
@@ -24,19 +25,45 @@ const relevantEvents = new Set([
   'customer.subscription.deleted',
 ]);
 
+export const config = {
+  api: {
+    bodyParser: false,
+  }
+}
+
+async function buffer(readable: ReadableStream) {
+  const chunks = [];
+  const reader = readable.getReader();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+  }
+  return Buffer.concat(chunks);
+}
+
 export async function POST(req: Request) {
-  const body = await req.text();
-  const sig = req.headers.get('stripe-signature') as string;
+  if (!req.body) {
+    return new Response('No body.', { status: 400 });
+  }
+
+  const rawBody = await buffer(req.body as ReadableStream);
+  const rawBodyStr = rawBody.toString('utf8');
+  const sig = headers().get('stripe-signature') as string;
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   let event: Stripe.Event;
 
   try {
     if (!sig || !webhookSecret)
       return new Response('Webhook secret not found.', { status: 400 });
-    event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+
+    event = stripe.webhooks.constructEvent(rawBodyStr, sig, webhookSecret);
+
     console.log(`🔔  Webhook received: ${event.type}`);
   } catch (err: any) {
-    console.log(`❌ Error message: ${err.message}`);
+    console.log(`❌ Error message: ${err.message}`)
+    ;
     return new Response(`Webhook Error: ${err.message}`, { status: 400 });
   }
 
@@ -81,8 +108,6 @@ export async function POST(req: Request) {
           );
           break;
 
-
-        // Checkout Session Events
         case 'checkout.session.completed':
           const checkoutSession = event.data.object as Stripe.Checkout.Session;
           if (checkoutSession.mode === 'subscription') {
@@ -111,5 +136,9 @@ export async function POST(req: Request) {
       status: 400
     });
   }
-  return new Response(JSON.stringify({ received: true }));
+  return new Response(JSON.stringify({ received: true }), {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
 }
