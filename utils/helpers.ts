@@ -1,7 +1,4 @@
 import type { Tables } from '@/types_db';
-import subscriptions from '@stripe/stripe-js';
-
-
 type Price = Tables<'prices'>;
 
 export const getURL = (path: string = '') => {

@@ -13,26 +13,11 @@ type Subscription = Tables<'subscriptions'>;
 const TRIAL_PERIOD_DAYS = 0;
 
 // Note: supabaseAdmin uses the SERVICE_ROLE_KEY which you must only use in a secure server-side context
-const supabaseAdmin = createClient<Database>(
+export const supabaseAdmin = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
   process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
 
-
-const handleCustomerCreated = async (customer: Stripe.Customer) => {
-  const customerData: Customer = {
-    id: customer.metadata.supabaseUUID,
-    stripe_customer_id: customer.id
-  };
-  const { error: upsertError } = await supabaseAdmin
-  .from('customers')
-  .upsert([customerData]);
-
-  if (upsertError) {
-    throw new Error(`Customer creation failed: ${upsertError.message}`);
-  }
-  console.log(`customer created: ${customer.id}`);
-};
 
 const upsertProductRecord = async (product: Stripe.Product) => {
   const productData: Product = {
@@ -66,7 +51,9 @@ const upsertPriceRecord = async (
     unit_amount: price.unit_amount ?? null,
     interval: price.recurring?.interval ?? null,
     interval_count: price.recurring?.interval_count ?? null,
-    trial_period_days: price.recurring?.trial_period_days ?? TRIAL_PERIOD_DAYS
+    trial_period_days: price.recurring?.trial_period_days ?? TRIAL_PERIOD_DAYS,
+    description: null,
+    metadata: null
   };
 
   const { error: upsertError } = await supabaseAdmin
@@ -224,7 +211,6 @@ const copyBillingDetailsToCustomer = async (
     .eq('id', uuid);
   if (updateError) throw new Error(`Customer update failed: ${updateError.message}`);
 };
-
 
 
 const manageSubscriptionStatusChange = async (
