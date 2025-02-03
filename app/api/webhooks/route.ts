@@ -25,25 +25,7 @@ const relevantEvents = [
 type RelevantEvents = typeof relevantEvents[number];
 
 // fuck you stripe, you commie bastards
-export const config = {
-  api: {
-    bodyParser: false
-  }
-};
-
 export const dynamic = 'force-dynamic';
-
-async function buffer(readable: ReadableStream): Promise<Buffer> {
-  const chunks: Uint8Array[] = [];
-  const reader = readable.getReader();
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-  }
-  return Buffer.concat(chunks);
-}
 
 
 async function processStripeEvent(event: Stripe.Event): Promise<void> {
@@ -124,8 +106,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const rawBody = await buffer(req.body);
-    const rawBodyStr = rawBody.toString('utf8');
+    const rawBody = await req.text();
     const sig = headers().get('stripe-signature') as string;
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -137,7 +118,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     const event = await stripe.webhooks.constructEventAsync(
-      rawBodyStr,
+      rawBody,
       sig,
       webhookSecret
     );
