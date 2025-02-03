@@ -11,7 +11,7 @@ export const stripe = new Stripe(
     appInfo: {
       name: 'MTGBAN Stripe Portal',
       version: '0.0.0',
-      url: 'https://github.com/the-muppet/mtgban-stripe-payments'
+      url: 'https://github.com/the-muppet/mtgban-stripe-payments',
     }
   }
 );

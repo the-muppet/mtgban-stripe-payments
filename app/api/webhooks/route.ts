@@ -9,8 +9,9 @@ import {
   deletePriceRecord,
 
 } from '@/utils/supabase/admin';
+import { NextApiRequest, NextApiResponse } from 'next';
 
-const relevantEvents = new Set([
+const relevantEvents: Stripe.Event.Type[] = [
   'product.created',
   'product.updated',
   'product.deleted',
@@ -23,8 +24,65 @@ const relevantEvents = new Set([
   'customer.subscription.created',
   'customer.subscription.updated',
   'customer.subscription.deleted',
-]);
+];
 
+const handler = async (
+  req: NextApiRequest,
+  res: NextApiResponse
+): Promise<void> => {
+  const webhookSecret: string = process.env.STRIPE_WEBHOOK_SECRET as string;
+  if (req.method === 'POST') {
+    const sig = req.headers['stripe-signature'];
+
+    let event: Stripe.Event;
+
+    try {
+      const body = await buffer(req);
+      event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+    } catch (err) {
+      console.error(`⚠️  Webhook signature verification failed.`, err);
+      res.status(400).send(`Webhook Error: ${err.message}`);
+      return;
+    }
+
+    console.log(`🔔  Webhook event received: ${event.type}:${event.id}`);
+  }
+
+res.json({received: true});
+  } else {
+    res.setHeader('Allow', 'POST');
+    res.status(405).end('Method Not Allowed');
+  }
+};
+
+export async function POST(req: Request) {
+  const body = await req.text();
+  const signature = (await headers()).get("Stripe-Signature");
+
+  if (!signature) return NextResponse.json({}, { status: 400 });
+
+  async function doEventProcessing() {
+    if (typeof signature !== "string") {
+      throw new Error("[STRIPE HOOK] Header isn't a string???");
+    }
+
+    const event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    );
+
+    waitUntil(processEvent(event));
+  }
+
+  const { error } = await tryCatch(doEventProcessing());
+
+  if (error) {
+    console.error("[STRIPE HOOK] Error processing event", error);
+  }
+
+  return NextResponse.json({ received: true });
+}
 
 export const dynamic = 'force-dynamic';
 
