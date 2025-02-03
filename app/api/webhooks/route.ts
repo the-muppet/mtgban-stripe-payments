@@ -10,8 +10,9 @@ import {
 } from '@/utils/supabase/admin';
 
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-const relevantEvents: Stripe.Event.Type[] = [
+const relevantEvents = [
   'checkout.session.completed',
   'customer.subscription.created',
   'customer.subscription.updated',
@@ -21,10 +22,19 @@ const relevantEvents: Stripe.Event.Type[] = [
   'product.deleted',
 ] as const;
 
+type RelevantEvents = typeof relevantEvents[number];
+
+// fuck you stripe, you commie bastards
+export const config = {
+  api: {
+    bodyParser: false
+  }
+};
+
 export const dynamic = 'force-dynamic';
 
-async function buffer(readable: ReadableStream) {
-  const chunks = [];
+async function buffer(readable: ReadableStream): Promise<Buffer> {
+  const chunks: Uint8Array[] = [];
   const reader = readable.getReader();
 
   while (true) {
@@ -36,11 +46,12 @@ async function buffer(readable: ReadableStream) {
 }
 
 
-export async function processStripeEvent(event: Stripe.Event) {
-  if (!relevantEvents.includes(event.type as any)) {
+async function processStripeEvent(event: Stripe.Event): Promise<void> {
+  if (!relevantEvents.includes(event.type as RelevantEvents)) {
     console.log(`❌ Unsupported event type: ${event.type}`);
     return;
   }
+
   try {
     switch (event.type) {
       // Product events
@@ -98,7 +109,7 @@ export async function processStripeEvent(event: Stripe.Event) {
       }
 
       default:
-        console.error(`Unhandled event type: ${event.type}`);
+        throw new Error(`Unhandled event type: ${event.type}`);
     }
   } catch (error) {
     console.error('Error processing webhook:', error);
@@ -107,32 +118,45 @@ export async function processStripeEvent(event: Stripe.Event) {
 }
 
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest): Promise<NextResponse> {
   if (!req.body) {
-    return new Response('No body.', { status: 400 });
+    return NextResponse.json('No body.', { status: 400 });
   }
 
   try {
-    const rawBody = await buffer(req.body as ReadableStream);
+    const rawBody = await buffer(req.body);
     const rawBodyStr = rawBody.toString('utf8');
     const sig = headers().get('stripe-signature') as string;
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
     if (!sig || !webhookSecret) {
-      return new Response('Webhook secret not found.', { status: 400 });
+      return NextResponse.json(
+        { error: 'Webhook secret not found.' },
+        { status: 400 }
+      );
     }
 
-    const event = await stripe.webhooks.constructEventAsync(rawBodyStr, sig, webhookSecret);
+    const event = await stripe.webhooks.constructEventAsync(
+      rawBodyStr,
+      sig,
+      webhookSecret
+    );
+
     console.log(`🔔 Webhook received: ${event.type}`);
-    
     await processStripeEvent(event);
-    const response = NextResponse.json({ received: true }, { status: 200 });
-    
     console.log(`🔔 Webhook processed successfully: ${event.type}`);
-    return response;
+
+    return NextResponse.json(
+      { received: true },
+      { status: 200 }
+    );
   } catch (err: any) {
-    console.log(`❌ Error message: ${err.message}`);
-    return new Response(`Webhook error: ${err.message}`, { status: 400 });
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    console.log(`❌ Error message: ${errorMessage}`);
+    return NextResponse.json(
+      { error: `Webhook error: ${errorMessage}` },
+      { status: 400 }
+    );
   }
 }
 
