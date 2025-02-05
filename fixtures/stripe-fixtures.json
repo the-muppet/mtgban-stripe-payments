@@ -4,68 +4,26 @@
   },
   "fixtures": [
     {
-      "name": "prod_hobby",
+      "name": "prod_modern",
       "path": "/v1/products",
       "method": "post",
       "params": {
-        "name": "Hobby",
-        "description": "Hobby product description",
-        "metadata": {
-          "index": 0
-        }
-      }
-    },
-    {
-      "name": "price_hobby_month",
-      "path": "/v1/prices",
-      "method": "post",
-      "params": {
-        "product": "${prod_hobby:id}",
-        "currency": "usd",
-        "billing_scheme": "per_unit",
-        "unit_amount": 1000,
-        "recurring": {
-          "interval": "month",
-          "interval_count": 1
-        }
-      }
-    },
-    {
-      "name": "price_hobby_year",
-      "path": "/v1/prices",
-      "method": "post",
-      "params": {
-        "product": "${prod_hobby:id}",
-        "currency": "usd",
-        "billing_scheme": "per_unit",
-        "unit_amount": 10000,
-        "recurring": {
-          "interval": "year",
-          "interval_count": 1
-        }
-      }
-    },
-    {
-      "name": "prod_freelancer",
-      "path": "/v1/products",
-      "method": "post",
-      "params": {
-        "name": "Freelancer",
-        "description": "Freelancer product description",
+        "name": "Modern",
+        "description": "Price search engine, market trend insights, and cross-continental arbitrage opportunities",
         "metadata": {
           "index": 1
         }
       }
     },
     {
-      "name": "price_freelancer_month",
+      "name": "price_modern_month",
       "path": "/v1/prices",
       "method": "post",
       "params": {
-        "product": "${prod_freelancer:id}",
+        "product": "${prod_modern:id}",
         "currency": "usd",
         "billing_scheme": "per_unit",
-        "unit_amount": 2000,
+        "unit_amount": 3000,
         "recurring": {
           "interval": "month",
           "interval_count": 1
@@ -73,16 +31,55 @@
       }
     },
     {
-      "name": "price_freelancer_year",
+      "name": "prod_legacy",
+      "path": "/v1/products",
+      "method": "post",
+      "params": {
+        "name": "Legacy",
+        "description": "Day 1 market data, sleeper opportunities, and expanded EU arbitrage features",
+        "metadata": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "name": "price_legacy_month",
       "path": "/v1/prices",
       "method": "post",
       "params": {
-        "product": "${prod_freelancer:id}",
+        "product": "${prod_legacy:id}",
         "currency": "usd",
         "billing_scheme": "per_unit",
-        "unit_amount": 20000,
+        "unit_amount": 7500,
         "recurring": {
-          "interval": "year",
+          "interval": "month",
+          "interval_count": 1
+        }
+      }
+    },
+    {
+      "name": "prod_vintage",
+      "path": "/v1/products",
+      "method": "post",
+      "params": {
+        "name": "Vintage",
+        "description": "All Legacy features plus advanced tools for professional-scale operations and CSV export capabilities",
+        "metadata": {
+          "index": 3
+        }
+      }
+    },
+    {
+      "name": "price_vintage_month",
+      "path": "/v1/prices",
+      "method": "post",
+      "params": {
+        "product": "${prod_vintage:id}",
+        "currency": "usd",
+        "billing_scheme": "per_unit",
+        "unit_amount": 15000,
+        "recurring": {
+          "interval": "month",
           "interval_count": 1
         }
       }

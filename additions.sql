@@ -84,3 +84,62 @@ create foreign table stripe.subscriptions (
     object 'subscriptions',
     rowid_column 'id'
 );
+
+-- Sync Stripe state
+create or replace function public.sync_stripe_state(
+  p_customer_data jsonb,
+  p_subscription_data jsonb
+) returns jsonb 
+language plpgsql
+security definer
+as $$
+declare 
+  v_user_id uuid;
+begin
+  -- Upsert customer
+  insert into public.customers (id, stripe_customer_id)
+  values (
+    p_customer_data->>'id',
+    p_customer_data->>'stripe_customer_id'
+  )
+  on conflict (id) do update
+  set stripe_customer_id = excluded.stripe_customer_id;
+
+  -- Handle subscription if present
+  if p_subscription_data is not null then
+    insert into public.subscriptions (
+      id,
+      user_id,
+      status,
+      price_id,
+      current_period_end,
+      current_period_start,
+      cancel_at_period_end,
+      metadata
+    ) values (
+      p_subscription_data->>'id',
+      p_customer_data->>'id',
+      (p_subscription_data->>'status')::public.subscription_status,
+      p_subscription_data->>'price_id',
+      (p_subscription_data->>'current_period_end')::timestamp with time zone,
+      (p_subscription_data->>'current_period_start')::timestamp with time zone,
+      (p_subscription_data->>'cancel_at_period_end')::boolean,
+      p_subscription_data->'metadata'
+    )
+    on conflict (id) do update
+    set
+      status = excluded.status,
+      price_id = excluded.price_id,
+      current_period_end = excluded.current_period_end,
+      current_period_start = excluded.current_period_start,
+      cancel_at_period_end = excluded.cancel_at_period_end,
+      metadata = excluded.metadata;
+  end if;
+
+  return jsonb_build_object(
+    'success', true,
+    'customer_id', p_customer_data->>'id',
+    'subscription_id', p_subscription_data->>'id'
+  );
+end;
+$$

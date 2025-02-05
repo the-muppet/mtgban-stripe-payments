@@ -40,63 +40,117 @@
 
   a {
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    transition: all 0.2s ease-out;
+    color: rgb(212, 212, 216);
+  }
+
+  a:hover {
+    color: white;
   }
 }
 
 @layer components {
-  .pricing-card {
-    @apply relative rounded-lg shadow-sm divide-y divide-zinc-800;
-    @apply bg-zinc-900 hover:bg-zinc-800;
-    @apply transition-colors duration-200;
+  .card {
+    @apply flex flex-col h-full relative overflow-hidden rounded-2xl;
+    background: rgba(142, 142, 142, 0.08);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow:
+      0 4px 24px -1px rgba(0, 0, 0, 0.3),
+      0 2px 8px -1px rgba(0, 0, 0, 0.2);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .pricing-card-active {
-    @apply border border-red-500;
+  .card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 8px 32px -2px rgba(0, 0, 0, 0.25),
+      0 4px 16px -2px rgba(0, 0, 0, 0.15);
   }
 
-  .pricing-header {
-    @apply text-3xl font-extrabold text-white sm:text-center sm:text-6xl;
+  .gradient-button {
+    @apply w-full py-3 px-6 rounded-xl font-medium text-base;
+    background: linear-gradient(to top, #ca0202, #780101);
+    color: rgba(255, 255, 255, 0.9);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .interval-selector {
-    @apply relative self-center bg-zinc-900 rounded-lg p-0.5 flex sm:mt-8;
-    @apply border border-zinc-800;
+  .gradient-button:hover {
+    background: linear-gradient(to right, #ca0202, #780101, via #ca0202, #780101);
+    transform: translateY(-1px);
+    box-shadow:
+      0 4px 12px rgba(0, 0, 0, 0.2),
+      0 0 0 1px rgba(255, 255, 255, 0.15);
+    color: rgba(255, 185, 0, 1);
   }
 
-  .interval-button {
-    @apply relative rounded-md py-2 text-sm font-medium;
-    @apply transition-colors duration-200 sm:w-auto sm:px-8;
+  .gradient-button:active {
+    transform: translateY(0);
   }
 
-  .interval-button-active {
-    @apply bg-zinc-800 text-white shadow-sm;
-  }
-
-  .interval-button-inactive {
-    @apply text-zinc-400 hover:text-white;
+  .section-divider {
+    @apply my-8 h-px w-full;
+    background: linear-gradient(to right, transparent, rgba(255, 215, 0, 0.6), transparent);
+    animation: gradient-shift 3s infinite;
   }
 }
 
 @layer utilities {
-  p a {
-    @apply hover:underline;
+  .gradient-text {
+    background: linear-gradient(to top, rgba(255, 190, 0, 1), rgba(255, 225, 0, 0.5));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .blur-backdrop {
+    @apply bg-opacity-30;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+
+  .glow-effect {
+    @apply relative;
+  }
+
+  .glow-effect::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(255, 255, 255, 0.06),
+        transparent 40%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .glow-effect:hover::before {
+    opacity: 1;
   }
 
   .animated {
-    -webkit-animation-duration: 1s;
     animation-duration: 1s;
-    -webkit-animation-fill-mode: both;
     animation-fill-mode: both;
   }
 
   .height-screen-helper {
     min-height: calc(100vh - 80px);
   }
+}
 
-  .glow-effect {
-    @apply before:absolute before:inset-0;
-    @apply before:bg-gradient-to-r before:from-red-500/20 before:to-transparent;
-    @apply before:opacity-0 before:transition-opacity before:duration-500;
-    @apply hover:before:opacity-100;
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+    border-color: transparent;
+  }
+  
+  50% {
+    background-position: 100% 50%;
+    border-color: transparent;
   }
 }

@@ -20,13 +20,14 @@ const relevantEvents = [
   'product.created',
   'product.updated',
   'product.deleted',
+  'price.created',
+  'price.updated',
+  'price.deleted',
 ] as const;
 
 type RelevantEvents = typeof relevantEvents[number];
 
-// fuck you stripe, you commie bastards
 export const dynamic = 'force-dynamic';
-
 
 async function processStripeEvent(event: Stripe.Event): Promise<void> {
   if (!relevantEvents.includes(event.type as RelevantEvents)) {
@@ -38,23 +39,35 @@ async function processStripeEvent(event: Stripe.Event): Promise<void> {
     switch (event.type) {
       // Product events
       case 'product.created':
-      case 'product.updated':
-        await upsertProductRecord(event.data.object as Stripe.Product);
+      case 'product.updated': {
+        const product = event.data.object as Stripe.Product;
+        await upsertProductRecord(product);
+        console.log(`✅ Product ${event.type}: ${product.id}`);
         break;
+      }
 
-      case 'product.deleted':
-        await deleteProductRecord(event.data.object as Stripe.Product);
+      case 'product.deleted': {
+        const product = event.data.object as Stripe.Product;
+        await deleteProductRecord(product);
+        console.log(`✅ Product deleted: ${product.id}`);
         break;
+      }
 
       // Price events
       case 'price.created':
-      case 'price.updated':
-        await upsertPriceRecord(event.data.object as Stripe.Price);
+      case 'price.updated': {
+        const price = event.data.object as Stripe.Price;
+        await upsertPriceRecord(price);
+        console.log(`✅ Price ${event.type}: ${price.id}`);
         break;
+      }
 
-      case 'price.deleted':
-        await deletePriceRecord(event.data.object as Stripe.Price);
+      case 'price.deleted': {
+        const price = event.data.object as Stripe.Price;
+        await deletePriceRecord(price);
+        console.log(`✅ Price deleted: ${price.id}`);
         break;
+      }
 
       // Subscription Events
       case 'customer.subscription.created':
@@ -65,6 +78,7 @@ async function processStripeEvent(event: Stripe.Event): Promise<void> {
           subscription.customer as string,
           event.type === 'customer.subscription.created'
         );
+        console.log(`✅ Subscription ${event.type}: ${subscription.id}`);
         break;
       }
 
@@ -75,6 +89,7 @@ async function processStripeEvent(event: Stripe.Event): Promise<void> {
           subscription.customer as string,
           false
         );
+        console.log(`✅ Subscription deleted: ${subscription.id}`);
         break;
       }
 
@@ -86,6 +101,7 @@ async function processStripeEvent(event: Stripe.Event): Promise<void> {
             checkoutSession.customer as string,
             true
           );
+          console.log(`✅ Checkout session completed: ${checkoutSession.id}`);
         }
         break;
       }
@@ -99,20 +115,30 @@ async function processStripeEvent(event: Stripe.Event): Promise<void> {
   }
 }
 
-
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
   if (!req.body) {
-    return NextResponse.json('No body.', { status: 400 });
+    console.log('❌ Error: No request body');
+    return NextResponse.json({ error: 'No request body' }, { status: 400 });
+  }
+
+  if (!webhookSecret) {
+    console.log('❌ Error: Missing STRIPE_WEBHOOK_SECRET');
+    return NextResponse.json(
+      { error: 'Missing webhook secret' },
+      { status: 500 }
+    );
   }
 
   try {
     const rawBody = await req.text();
-    const sig = headers().get('stripe-signature') as string;
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    const sig = headers().get('stripe-signature');
 
-    if (!sig || !webhookSecret) {
+    if (!sig) {
+      console.log('❌ Error: No Stripe signature found');
       return NextResponse.json(
-        { error: 'Webhook secret not found.' },
+        { error: 'No Stripe signature found' },
         { status: 400 }
       );
     }
@@ -125,19 +151,24 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     console.log(`🔔 Webhook received: ${event.type}`);
     await processStripeEvent(event);
-    console.log(`🔔 Webhook processed successfully: ${event.type}`);
+    console.log(`✅ Webhook processed successfully: ${event.type}`);
 
-    return NextResponse.json(
-      { received: true },
-      { status: 200 }
-    );
-  } catch (err: any) {
+    return NextResponse.json({ received: true }, { status: 200 });
+  } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error';
     console.log(`❌ Error message: ${errorMessage}`);
+    
+    // Return 401 if signature verification fails
+    if (errorMessage.includes('No signatures found')) {
+      return NextResponse.json(
+        { error: `Webhook signature verification failed` },
+        { status: 401 }
+      );
+    }
+
     return NextResponse.json(
       { error: `Webhook error: ${errorMessage}` },
       { status: 400 }
     );
   }
 }
-

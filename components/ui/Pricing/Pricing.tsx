@@ -31,6 +31,30 @@ interface Props {
   subscription: SubscriptionWithProduct | null;
 }
 
+const COLOR_SCHEMES = {
+  pioneer: {
+    primary: "#4f46e5",
+    secondary: "#3730a3",
+    hover: "rgba(79,70,229,0.15)",
+    glow: "rgba(199,210,254,0.3)",
+    accent: "#818cf8"
+  },
+  pro: {
+    primary: "#9333ea",
+    secondary: "#7e22ce",
+    hover: "rgba(147,51,234,0.15)",
+    glow: "rgba(233,213,255,0.3)",
+    accent: "#c084fc"
+  },
+  enterprise: {
+    primary: "#f59e0b",
+    secondary: "#d97706",
+    hover: "rgba(245,158,11,0.15)",
+    glow: "rgba(255,233,213,0.3)",
+    accent: "#fcd34d"
+  }
+};
+
 type BillingInterval = 'month' | 'year';
 
 const formatPrice = (amount: number, currency: string): string =>
@@ -46,11 +70,6 @@ export default function Pricing({ user, products, subscription }: Props) {
   const [billingInterval, setBillingInterval] = useState<BillingInterval>('month');
   const [priceIdLoading, setPriceIdLoading] = useState<string>();
   const [mounted, setMounted] = useState<boolean>(false);
-
-  // Memoize intervals calculation
-  const intervals = useMemo(() => {
-    return [' month'];
-  }, []);
 
   // Memoize active subscription check
   const isActiveSubscription = useCallback(
