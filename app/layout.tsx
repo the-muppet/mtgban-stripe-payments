@@ -12,19 +12,19 @@ const description = 'Manage your MTGBAN subscription.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(getURL()),
-  title: title,
-  description: description,
+  title,
+  description,
   openGraph: {
-    title: title,
-    description: description
+    title,
+    description
   }
 };
 
-export default async function RootLayout({ children }: PropsWithChildren) {
+export default function RootLayout({ children }: PropsWithChildren) {
   return (
     <html lang="en">
       <body className="bg-black 70% to-red-800 min-h-screen text-zinc-100">
-      <Navbar />
+        <Navbar />
         <main
           id="skip"
           className="min-h-[calc(100dvh-4rem)] md:min-h[calc(100dvh-5rem)]"
@@ -34,9 +34,9 @@ export default async function RootLayout({ children }: PropsWithChildren) {
         <Suspense>
           <Toaster />
         </Suspense>
+        <Analytics />
+        <SpeedInsights />
       </body>
-      <Analytics />
-      <SpeedInsights />
     </html>
   );
 }

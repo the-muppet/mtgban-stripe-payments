@@ -23,7 +23,6 @@ export async function checkoutWithStripe(
   redirectPath: string = '/account'
 ): Promise<CheckoutResponse> {
   try {
-    // Get the user from Supabase auth
     const supabase = createClient();
     const {
       error,
@@ -35,7 +34,6 @@ export async function checkoutWithStripe(
       throw new Error('Could not get user session.');
     }
 
-    // Retrieve or create the customer in Stripe
     let customer: string;
     try {
       customer = await createOrRetrieveCustomer({
@@ -60,7 +58,7 @@ export async function checkoutWithStripe(
           quantity: 1
         }
       ],
-      cancel_url: getURL(),
+      cancel_url: getURL(redirectPath),
       success_url: getURL(redirectPath)
     };
 
