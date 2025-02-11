@@ -46,24 +46,6 @@ module.exports = {
             opacity: 0
           }
         },
-        'ripple-delayed': {
-          '0%': {
-            transform: 'scale(1)',
-            opacity: 0
-          },
-          '25%': {
-            transform: 'scale(1)',
-            opacity: 1
-          },
-          '75%': {
-            transform: 'scale(2)',
-            opacity: 0.5
-          },
-          '100%': {
-            transform: 'scale(3)',
-            opacity: 0
-          }
-        },
         'accordion-down': {
           from: { height: 0 },
           to: { height: 'var(--radix-accordion-content-height)' }
@@ -104,7 +86,6 @@ module.exports = {
         'float': 'float 6s ease-in-out infinite',
         'glow': 'glow 2s ease-in-out infinite',
         'ripple': 'ripple 2s ease-out forwards',
-        'ripple-delayed': 'ripple-delayed 2s ease-out forwards',
       },
       backdropBlur: {
         xs: '2px',

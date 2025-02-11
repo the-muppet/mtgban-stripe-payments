@@ -102,7 +102,7 @@
 
 @layer utilities {
   .gradient-text {
-    background: linear-gradient(to top, rgba(255, 190, 0, 1), rgba(255, 225, 0, 0.5));
+    background: linear-gradient(to top, rgba(255, 64, 0, 0.961), rgba(255, 0, 0, 0.957));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
