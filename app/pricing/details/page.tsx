@@ -16,10 +16,16 @@ export default async function PricingPage() {
     ]);
 
     return (
-        <Pricing
-            user={user}
-            products={products}
-            subscription={subscription}
-        />
+        <>
+            {products ? (
+                <Pricing
+                    user={user}
+                    products={products}
+                    subscription={subscription}
+                />
+            ) : (
+                <div>Loading products...</div>
+            )}
+        </>
     );
 }
